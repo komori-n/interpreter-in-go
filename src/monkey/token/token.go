@@ -36,6 +36,11 @@ const (
 
 	Function
 	Let
+	True
+	False
+	If
+	Else
+	Return
 )
 
 func (tt TokenKind) String() string {
@@ -80,14 +85,29 @@ func (tt TokenKind) String() string {
 		return "FUNCTION"
 	case Let:
 		return "LET"
+	case True:
+		return "TRUE"
+	case False:
+		return "FALSE"
+	case If:
+		return "IF"
+	case Else:
+		return "ELSE"
+	case Return:
+		return "RETURN"
 	default:
 		return fmt.Sprintf("%d", int(tt))
 	}
 }
 
 var keywards = map[string]TokenKind{
-	"fn":  Function,
-	"let": Let,
+	"fn":     Function,
+	"let":    Let,
+	"true":   True,
+	"false":  False,
+	"if":     If,
+	"else":   Else,
+	"return": Return,
 }
 
 func LookUpIdent(ident string) TokenKind {

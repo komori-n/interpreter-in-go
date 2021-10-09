@@ -16,6 +16,12 @@ let add = fn(x, y) {
 let result = add(five, ten);
 !-/*5;
 3 < 3 > 4;
+
+if (5 < 10) {
+	return true;
+} else {
+	return false;
+}
 `
 
 	tests := []struct {
@@ -82,7 +88,26 @@ let result = add(five, ten);
 		{token.Int, "4", 10},
 		{token.Semicolon, ";", 10},
 
-		{token.Eof, "", 11},
+		// 9th --  line
+		{token.If, "if", 12},
+		{token.LParen, "(", 12},
+		{token.Int, "5", 12},
+		{token.Lt, "<", 12},
+		{token.Int, "10", 12},
+		{token.RParen, ")", 12},
+		{token.LBrace, "{", 12},
+		{token.Return, "return", 13},
+		{token.True, "true", 13},
+		{token.Semicolon, ";", 13},
+		{token.RBrace, "}", 14},
+		{token.Else, "else", 14},
+		{token.LBrace, "{", 14},
+		{token.Return, "return", 15},
+		{token.False, "false", 15},
+		{token.Semicolon, ";", 15},
+		{token.RBrace, "}", 16},
+
+		{token.Eof, "", 17},
 	}
 
 	l := New(input)
