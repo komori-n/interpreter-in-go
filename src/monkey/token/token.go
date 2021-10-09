@@ -66,6 +66,18 @@ func (tt TokenKind) String() string {
 	}
 }
 
+var keywards = map[string]TokenKind{
+	"fn":  Function,
+	"let": Let,
+}
+
+func LookUpIdent(ident string) TokenKind {
+	if tok, ok := keywards[ident]; ok {
+		return tok
+	}
+	return Ident
+}
+
 // A code token
 type Token struct {
 	Kind    TokenKind
