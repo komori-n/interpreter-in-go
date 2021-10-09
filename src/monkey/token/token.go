@@ -62,15 +62,15 @@ func (tt TokenKind) String() string {
 	case Minus:
 		return "MINUS"
 	case Bang:
-		return "Bang"
+		return "BANG"
 	case Asterisk:
-		return "Asterisk"
+		return "ASTERISK"
 	case Slash:
-		return "Slash"
+		return "SLASH"
 	case Lt:
-		return "Lt"
+		return "LT"
 	case Gt:
-		return "Gt"
+		return "GT"
 	case Eq:
 		return "EQ"
 	case Ne:
