@@ -18,6 +18,13 @@ const (
 
 	Assign
 	Plus
+	Minus
+	Bang
+	Asterisk
+	Slash
+
+	Lt
+	Gt
 
 	Comma
 	Semicolon
@@ -45,6 +52,18 @@ func (tt TokenKind) String() string {
 		return "ASSIGN"
 	case Plus:
 		return "PLUS"
+	case Minus:
+		return "MINUS"
+	case Bang:
+		return "Bang"
+	case Asterisk:
+		return "Asterisk"
+	case Slash:
+		return "Slash"
+	case Lt:
+		return "Lt"
+	case Gt:
+		return "Gt"
 	case Comma:
 		return "COMMA"
 	case Semicolon:
