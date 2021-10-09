@@ -25,6 +25,8 @@ const (
 
 	Lt
 	Gt
+	Eq
+	Ne
 
 	Comma
 	Semicolon
@@ -69,6 +71,10 @@ func (tt TokenKind) String() string {
 		return "Lt"
 	case Gt:
 		return "Gt"
+	case Eq:
+		return "EQ"
+	case Ne:
+		return "NE"
 	case Comma:
 		return "COMMA"
 	case Semicolon:

@@ -32,6 +32,14 @@ func (l *Lexer) readChar() {
 	}
 }
 
+func (l *Lexer) peekChar() rune {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
+}
+
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
@@ -39,38 +47,50 @@ func (l *Lexer) NextToken() token.Token {
 
 	switch l.ch {
 	case '=':
-		tok = newToken(token.Assign, l.ch, l.line)
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = newToken(token.Eq, literal, l.line)
+		} else {
+			tok = newToken(token.Assign, string(l.ch), l.line)
+		}
 	case ';':
-		tok = newToken(token.Semicolon, l.ch, l.line)
+		tok = newToken(token.Semicolon, string(l.ch), l.line)
 	case '(':
-		tok = newToken(token.LParen, l.ch, l.line)
+		tok = newToken(token.LParen, string(l.ch), l.line)
 	case ')':
-		tok = newToken(token.RParen, l.ch, l.line)
+		tok = newToken(token.RParen, string(l.ch), l.line)
 	case ',':
-		tok = newToken(token.Comma, l.ch, l.line)
+		tok = newToken(token.Comma, string(l.ch), l.line)
 	case '+':
-		tok = newToken(token.Plus, l.ch, l.line)
+		tok = newToken(token.Plus, string(l.ch), l.line)
 	case '-':
-		tok = newToken(token.Minus, l.ch, l.line)
+		tok = newToken(token.Minus, string(l.ch), l.line)
 	case '!':
-		tok = newToken(token.Bang, l.ch, l.line)
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = newToken(token.Ne, literal, l.line)
+		} else {
+			tok = newToken(token.Bang, string(l.ch), l.line)
+		}
 	case '*':
-		tok = newToken(token.Asterisk, l.ch, l.line)
+		tok = newToken(token.Asterisk, string(l.ch), l.line)
 	case '/':
-		tok = newToken(token.Slash, l.ch, l.line)
+		tok = newToken(token.Slash, string(l.ch), l.line)
 	case '<':
-		tok = newToken(token.Lt, l.ch, l.line)
+		tok = newToken(token.Lt, string(l.ch), l.line)
 	case '>':
-		tok = newToken(token.Gt, l.ch, l.line)
+		tok = newToken(token.Gt, string(l.ch), l.line)
 	case '{':
-		tok = newToken(token.LBrace, l.ch, l.line)
+		tok = newToken(token.LBrace, string(l.ch), l.line)
 	case '}':
-		tok = newToken(token.RBrace, l.ch, l.line)
+		tok = newToken(token.RBrace, string(l.ch), l.line)
 	case 0:
 		// Assign empty string instead of null string ("\0")
-		tok.Kind = token.Eof
-		tok.Literal = ""
-		tok.Line = l.line
+		tok = newToken(token.Eof, "", l.line)
 	default:
 		tok.Line = l.line
 		if isLetter(l.ch) {
@@ -82,15 +102,15 @@ func (l *Lexer) NextToken() token.Token {
 			tok.Literal = l.readNumber()
 			return tok
 		} else {
-			tok = newToken(token.Illegal, l.ch, l.line)
+			tok = newToken(token.Illegal, string(l.ch), l.line)
 		}
 	}
 	l.readChar()
 	return tok
 }
 
-func newToken(tokenKind token.TokenKind, ch rune, line int) token.Token {
-	return token.Token{Kind: tokenKind, Literal: string(ch), Line: line}
+func newToken(tokenKind token.TokenKind, literal string, line int) token.Token {
+	return token.Token{Kind: tokenKind, Literal: literal, Line: line}
 }
 
 func (l *Lexer) readIdentifier() string {
