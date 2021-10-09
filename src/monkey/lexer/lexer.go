@@ -8,12 +8,13 @@ import (
 type Lexer struct {
 	input        []rune
 	position     int
+	line         int
 	readPosition int
 	ch           rune
 }
 
 func New(input string) *Lexer {
-	l := &Lexer{input: []rune(input)}
+	l := &Lexer{input: []rune(input), line: 1}
 	l.readChar()
 	return l
 }
@@ -26,6 +27,9 @@ func (l *Lexer) readChar() {
 	}
 	l.position = l.readPosition
 	l.readPosition += 1
+	if l.ch == '\n' {
+		l.line += 1
+	}
 }
 
 func (l *Lexer) NextToken() token.Token {
@@ -35,26 +39,28 @@ func (l *Lexer) NextToken() token.Token {
 
 	switch l.ch {
 	case '=':
-		tok = newToken(token.Assign, l.ch)
+		tok = newToken(token.Assign, l.ch, l.line)
 	case ';':
-		tok = newToken(token.Semicolon, l.ch)
+		tok = newToken(token.Semicolon, l.ch, l.line)
 	case '(':
-		tok = newToken(token.LParen, l.ch)
+		tok = newToken(token.LParen, l.ch, l.line)
 	case ')':
-		tok = newToken(token.RParen, l.ch)
+		tok = newToken(token.RParen, l.ch, l.line)
 	case ',':
-		tok = newToken(token.Comma, l.ch)
+		tok = newToken(token.Comma, l.ch, l.line)
 	case '+':
-		tok = newToken(token.Plus, l.ch)
+		tok = newToken(token.Plus, l.ch, l.line)
 	case '{':
-		tok = newToken(token.LBrace, l.ch)
+		tok = newToken(token.LBrace, l.ch, l.line)
 	case '}':
-		tok = newToken(token.RBrace, l.ch)
+		tok = newToken(token.RBrace, l.ch, l.line)
 	case 0:
 		// Assign empty string instead of null string ("\0")
 		tok.Kind = token.Eof
 		tok.Literal = ""
+		tok.Line = l.line
 	default:
+		tok.Line = l.line
 		if isLetter(l.ch) {
 			tok.Literal = l.readIdentifier()
 			tok.Kind = token.LookUpIdent(tok.Literal)
@@ -64,15 +70,15 @@ func (l *Lexer) NextToken() token.Token {
 			tok.Literal = l.readNumber()
 			return tok
 		} else {
-			tok = newToken(token.Illegal, l.ch)
+			tok = newToken(token.Illegal, l.ch, l.line)
 		}
 	}
 	l.readChar()
 	return tok
 }
 
-func newToken(tokenKind token.TokenKind, ch rune) token.Token {
-	return token.Token{Kind: tokenKind, Literal: string(ch)}
+func newToken(tokenKind token.TokenKind, ch rune, line int) token.Token {
+	return token.Token{Kind: tokenKind, Literal: string(ch), Line: line}
 }
 
 func (l *Lexer) readIdentifier() string {

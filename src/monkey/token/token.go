@@ -82,4 +82,5 @@ func LookUpIdent(ident string) TokenKind {
 type Token struct {
 	Kind    TokenKind
 	Literal string
+	Line    int
 }

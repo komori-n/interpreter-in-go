@@ -6,8 +6,7 @@ import (
 )
 
 func TestNextToken(t *testing.T) {
-	input := `
-let five = 5;
+	input := `let five = 5;
 let ten = 10;
 
 let add = fn(x, y) {
@@ -20,51 +19,52 @@ let result = add(five, ten);
 	tests := []struct {
 		expectedKind    token.TokenKind
 		expectedLiteral string
+		expectedLine    int
 	}{
 		// 1st line
-		{token.Let, "let"},
-		{token.Ident, "five"},
-		{token.Assign, "="},
-		{token.Int, "5"},
-		{token.Semicolon, ";"},
+		{token.Let, "let", 1},
+		{token.Ident, "five", 1},
+		{token.Assign, "=", 1},
+		{token.Int, "5", 1},
+		{token.Semicolon, ";", 1},
 		// 2nd line
-		{token.Let, "let"},
-		{token.Ident, "ten"},
-		{token.Assign, "="},
-		{token.Int, "10"},
-		{token.Semicolon, ";"},
+		{token.Let, "let", 2},
+		{token.Ident, "ten", 2},
+		{token.Assign, "=", 2},
+		{token.Int, "10", 2},
+		{token.Semicolon, ";", 2},
 
 		// 3rd -- 5th line
-		{token.Let, "let"},
-		{token.Ident, "add"},
-		{token.Assign, "="},
-		{token.Function, "fn"},
-		{token.LParen, "("},
-		{token.Ident, "x"},
-		{token.Comma, ","},
-		{token.Ident, "y"},
-		{token.RParen, ")"},
-		{token.LBrace, "{"},
-		{token.Ident, "x"},
-		{token.Plus, "+"},
-		{token.Ident, "y"},
-		{token.Semicolon, ";"},
-		{token.RBrace, "}"},
-		{token.Semicolon, ";"},
+		{token.Let, "let", 4},
+		{token.Ident, "add", 4},
+		{token.Assign, "=", 4},
+		{token.Function, "fn", 4},
+		{token.LParen, "(", 4},
+		{token.Ident, "x", 4},
+		{token.Comma, ",", 4},
+		{token.Ident, "y", 4},
+		{token.RParen, ")", 4},
+		{token.LBrace, "{", 4},
+		{token.Ident, "x", 5},
+		{token.Plus, "+", 5},
+		{token.Ident, "y", 5},
+		{token.Semicolon, ";", 5},
+		{token.RBrace, "}", 6},
+		{token.Semicolon, ";", 6},
 
 		// 6th line
-		{token.Let, "let"},
-		{token.Ident, "result"},
-		{token.Assign, "="},
-		{token.Ident, "add"},
-		{token.LParen, "("},
-		{token.Ident, "five"},
-		{token.Comma, ","},
-		{token.Ident, "ten"},
-		{token.RParen, ")"},
-		{token.Semicolon, ";"},
+		{token.Let, "let", 8},
+		{token.Ident, "result", 8},
+		{token.Assign, "=", 8},
+		{token.Ident, "add", 8},
+		{token.LParen, "(", 8},
+		{token.Ident, "five", 8},
+		{token.Comma, ",", 8},
+		{token.Ident, "ten", 8},
+		{token.RParen, ")", 8},
+		{token.Semicolon, ";", 8},
 
-		{token.Eof, ""},
+		{token.Eof, "", 9},
 	}
 
 	l := New(input)
@@ -72,11 +72,15 @@ let result = add(five, ten);
 		tok := l.NextToken()
 
 		if tok.Kind != tt.expectedKind {
-			t.Fatalf("tests[%d] - tokenkind wrong. expected=%q, got=%q", i, tt.expectedKind, tok.Kind)
+			t.Fatalf("tests[%d] - tokenkind wrong(L%d). expected=%q, got=%q", i, tt.expectedLine, tt.expectedKind, tok.Kind)
 		}
 
 		if tok.Literal != tt.expectedLiteral {
-			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q", i, tt.expectedLiteral, tok.Literal)
+			t.Fatalf("tests[%d] - literal wrong(L%d). expected=%q, got=%q", i, tt.expectedLine, tt.expectedLiteral, tok.Literal)
+		}
+
+		if tok.Line != tt.expectedLine {
+			t.Fatalf("tests[%d] - line wrong(L%d). expected=%d, got=%d", i, tt.expectedLine, tt.expectedLine, tok.Line)
 		}
 	}
 }
