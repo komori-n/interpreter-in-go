@@ -6,6 +6,7 @@ My personal learning record for [Writing An Interpreter In Go](https://interpret
 
 - rename `TokenType` --> `TokenKind`
 - add `line` field for `Token` to record the line number
+- use "testify/assert" for unit testing
 
 ## License
 
