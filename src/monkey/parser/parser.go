@@ -8,6 +8,7 @@ import (
 	"strconv"
 )
 
+// Operator coupling predences
 const (
 	_ int = iota
 	LOWEST
@@ -32,8 +33,10 @@ var precedences = map[token.TokenKind]int{
 }
 
 type (
+	// Parse prefix expression.
 	prefixParseFn func() ast.Expression
-	infixParseFn  func(ast.Expression) ast.Expression
+	// Parse infix expression. The argument is a left expression of the operator.
+	infixParseFn func(ast.Expression) ast.Expression
 )
 
 type Parser struct {
@@ -79,11 +82,13 @@ func New(l *lexer.Lexer) *Parser {
 	return p
 }
 
+// Advance the token sequence
 func (p *Parser) nextToken() {
 	p.curToken = p.peekToken
 	p.peekToken = p.l.NextToken()
 }
 
+// Entry point of the parsing process
 func (p *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
 
@@ -122,9 +127,11 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 		return nil
 	}
 
+	// Skip assign(=) token
 	p.nextToken()
 	stmt.Value = p.parseExpression(LOWEST)
 
+	// Skip semicolon(;) token if exists
 	if p.peekTokenIs(token.Semicolon) {
 		p.nextToken()
 	}
@@ -133,10 +140,12 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	stmt := &ast.ReturnStatement{Token: p.curToken}
+	// Skip return token
 	p.nextToken()
 
 	stmt.ReturnValue = p.parseExpression(LOWEST)
 
+	// Skip semicolon(;) token if exists
 	if p.peekTokenIs(token.Semicolon) {
 		p.nextToken()
 	}
@@ -162,6 +171,8 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	}
 	leftExp := prefix()
 
+	// If the next operator's precedence is higher than current one,
+	// it is "inhaled" into the current expression.
 	for !p.peekTokenIs(token.Semicolon) && precedence < p.peekPrecedence() {
 		infix := p.infixParseFns[p.peekToken.Kind]
 		if infix == nil {
@@ -200,6 +211,7 @@ func (p *Parser) parseBoolean() ast.Expression {
 }
 
 func (p *Parser) parseGroupedExpression() ast.Expression {
+	// Skip lparen('(') token
 	p.nextToken()
 
 	exp := p.parseExpression(LOWEST)
@@ -213,6 +225,7 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	block := &ast.BlockStatement{Token: p.curToken}
 
+	// Skip lbrace('{') token
 	p.nextToken()
 	for !p.curTokenIs(token.RBrace) && !p.curTokenIs(token.Eof) {
 		stmt := p.parseStatement()
@@ -347,14 +360,18 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 	return args
 }
 
+// Check if the kind of the current token is `t`.
 func (p *Parser) curTokenIs(t token.TokenKind) bool {
 	return p.curToken.Kind == t
 }
 
+// Check if the kind of the peeking token is `t`.
 func (p *Parser) peekTokenIs(t token.TokenKind) bool {
 	return p.peekToken.Kind == t
 }
 
+// Advance the token sequence if the peeking token is `t`.
+// If not, record an error and report failure.
 func (p *Parser) expectPeek(t token.TokenKind) bool {
 	if p.peekTokenIs(t) {
 		p.nextToken()
@@ -365,13 +382,7 @@ func (p *Parser) expectPeek(t token.TokenKind) bool {
 	}
 }
 
-func (p *Parser) peekPrecedence() int {
-	if p, ok := precedences[p.peekToken.Kind]; ok {
-		return p
-	}
-	return LOWEST
-}
-
+// Return the precedence of the current token.
 func (p *Parser) curPrecedence() int {
 	if p, ok := precedences[p.curToken.Kind]; ok {
 		return p
@@ -379,6 +390,15 @@ func (p *Parser) curPrecedence() int {
 	return LOWEST
 }
 
+// Return the precedence of the peeking token.
+func (p *Parser) peekPrecedence() int {
+	if p, ok := precedences[p.peekToken.Kind]; ok {
+		return p
+	}
+	return LOWEST
+}
+
+// Return errors detected while parsing.
 func (p *Parser) Errors() []string {
 	return p.errors
 }

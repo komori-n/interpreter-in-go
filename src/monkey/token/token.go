@@ -56,37 +56,37 @@ func (tt TokenKind) String() string {
 	case Int:
 		return "INT"
 	case Assign:
-		return "ASSIGN"
+		return "="
 	case Plus:
-		return "PLUS"
+		return "+"
 	case Minus:
-		return "MINUS"
+		return "-"
 	case Bang:
-		return "BANG"
+		return "!"
 	case Asterisk:
-		return "ASTERISK"
+		return "*"
 	case Slash:
-		return "SLASH"
+		return "/"
 	case Lt:
-		return "LT"
+		return "<"
 	case Gt:
-		return "GT"
+		return ">"
 	case Eq:
-		return "EQ"
+		return "=="
 	case Ne:
-		return "NE"
+		return "!="
 	case Comma:
-		return "COMMA"
+		return ","
 	case Semicolon:
-		return "SEMICOLON"
+		return ";"
 	case LParen:
-		return "LPAREN"
+		return "("
 	case RParen:
-		return "RPAREN"
+		return ")"
 	case LBrace:
-		return "LBRACE"
+		return "{"
 	case RBrace:
-		return "RBRACE"
+		return "}"
 	case Function:
 		return "FUNCTION"
 	case Let:
@@ -116,6 +116,8 @@ var keywards = map[string]TokenKind{
 	"return": Return,
 }
 
+// Judge if the argument is a keyword or not.
+// If so, return the kind of keyword. Else, return `Ident`.
 func LookUpIdent(ident string) TokenKind {
 	if tok, ok := keywards[ident]; ok {
 		return tok

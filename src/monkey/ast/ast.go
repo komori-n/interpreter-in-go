@@ -7,20 +7,25 @@ import (
 )
 
 type Node interface {
+	// Return the literal string of the node.
 	TokenLiteral() string
+	// Return the string representation of the node and its children.
 	String() string
 }
 
 type Statement interface {
 	Node
+	// A dummy function. If this exists, the node is treated as a statement.
 	statementNode()
 }
 
 type Expression interface {
 	Node
+	// A dummy function. If this exists, the node is treated as a expression.
 	expressionNode()
 }
 
+// A whole program. It consists of a set of statements.
 type Program struct {
 	Statements []Statement
 }
@@ -43,6 +48,7 @@ func (p *Program) String() string {
 	return out.String()
 }
 
+// let <name> = <value>;
 type LetStatement struct {
 	Token token.Token
 	Name  *Identifier
@@ -65,6 +71,7 @@ func (ls *LetStatement) String() string {
 	return out.String()
 }
 
+// return <return-value>;
 type ReturnStatement struct {
 	Token       token.Token
 	ReturnValue Expression
@@ -84,6 +91,7 @@ func (rs *ReturnStatement) String() string {
 	return out.String()
 }
 
+// <expression>;
 type ExpressionStatement struct {
 	Token token.Token
 	Expression
@@ -98,6 +106,7 @@ func (es *ExpressionStatement) String() string {
 	return ""
 }
 
+// { <statement>* }
 type BlockStatement struct {
 	Token      token.Token
 	Statements []Statement
@@ -114,6 +123,7 @@ func (bs *BlockStatement) String() string {
 	return out.String()
 }
 
+// <identifier>
 type Identifier struct {
 	Token token.Token
 	Value string
@@ -123,6 +133,7 @@ func (i *Identifier) expressionNode()      {}
 func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
 func (i *Identifier) String() string       { return i.Value }
 
+// <integer-literral>
 type IntegerLiteral struct {
 	Token token.Token
 	Value int64
@@ -132,6 +143,7 @@ func (il *IntegerLiteral) expressionNode()      {}
 func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntegerLiteral) String() string       { return il.Token.Literal }
 
+// <operator> <right>
 type PrefixExpression struct {
 	Token    token.Token
 	Operator string
@@ -150,6 +162,7 @@ func (pe *PrefixExpression) String() string {
 	return out.String()
 }
 
+// <left> <operator> <right>
 type InfixExpression struct {
 	Token    token.Token
 	Left     Expression
@@ -170,6 +183,7 @@ func (ie *InfixExpression) String() string {
 	return out.String()
 }
 
+// if (<condition>) <consequence> (else <alternative>)
 type IfExpression struct {
 	Token       token.Token
 	Condition   Expression
@@ -192,6 +206,7 @@ func (ie *IfExpression) String() string {
 	return out.String()
 }
 
+// true / false
 type Boolean struct {
 	Token token.Token
 	Value bool
@@ -201,6 +216,7 @@ func (b *Boolean) expressionNode()      {}
 func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
 func (b *Boolean) String() string       { return b.Token.Literal }
 
+// fn(<parameter>*) <body>
 type FunctionLiteral struct {
 	Token      token.Token
 	Parameters []*Identifier
@@ -226,6 +242,7 @@ func (fl *FunctionLiteral) String() string {
 	return out.String()
 }
 
+// <function>(<argument>*)
 type CallExpression struct {
 	Token     token.Token
 	Function  Expression
