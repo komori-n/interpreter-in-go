@@ -113,6 +113,25 @@ func TestIfElseExpression(t *testing.T) {
 		evaluated := testEval(a, tt.input)
 		testObject(a, evaluated, tt.expected)
 	}
+
+}
+
+func TestReturnStatements(t *testing.T) {
+	a := assert.New(t)
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"return 10;", 10},
+		{"return 10; 9;", 10},
+		{"return 2 * 5; 9;", 10},
+		{"9; return 2 * 5;", 10},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(a, tt.input)
+		testObject(a, evaluated, tt.expected)
+	}
 }
 
 func testObject(a *assert.Assertions, obj object.Object, expected interface{}) {
