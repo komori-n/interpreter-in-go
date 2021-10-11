@@ -151,6 +151,7 @@ func TestErrorHandling(t *testing.T) {
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{"foobar", "identifier not found: foobar"},
+		{`"Hello" - "World"`, "unknown operator: STRING - STRING"},
 	}
 
 	for _, tt := range tests {
@@ -174,6 +175,64 @@ func TestLetStatements(t *testing.T) {
 		{"let a = 5 * 5; a;", 25},
 		{"let a = 5; let b = a; b;", 5},
 		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(a, tt.input)
+		testObject(a, evaluated, tt.expected)
+	}
+}
+
+func TestStringLiteral(t *testing.T) {
+	a := assert.New(t)
+	input := `"Hello World!"`
+	evaluated := testEval(a, input)
+	str, ok := evaluated.(*object.String)
+	if !a.True(ok) {
+		return
+	}
+
+	a.Equal(str.Value, "Hello World!")
+}
+
+func TestStringConcatenation(t *testing.T) {
+	a := assert.New(t)
+	input := `"Hello" + " " + "World!"`
+	evaluated := testEval(a, input)
+	str, ok := evaluated.(*object.String)
+	if !a.True(ok) {
+		return
+	}
+
+	a.Equal(str.Value, "Hello World!")
+}
+
+func TestFunctionObject(t *testing.T) {
+	a := assert.New(t)
+	input := "fn(x) { x + 2; }"
+	evaluated := testEval(a, input)
+	fn, ok := evaluated.(*object.Function)
+	if !a.True(ok) {
+		return
+	}
+
+	a.Equal(len(fn.Parameters), 1)
+	a.Equal(fn.Parameters[0].String(), "x")
+	a.Equal(fn.Body.String(), "(x + 2)")
+}
+
+func TestFunctionApplication(t *testing.T) {
+	a := assert.New(t)
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let identity = fn(x) { x; }; identity(5);", 5},
+		{"let identity = fn(x) { return x; }; identity(5);", 5},
+		{"let double = fn(x) { x * 2; }; double(5);", 10},
+		{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
+		{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+		{"fn(x) {x; }(5)", 5},
 	}
 
 	for _, tt := range tests {

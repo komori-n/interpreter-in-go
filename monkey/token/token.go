@@ -15,6 +15,7 @@ const (
 
 	Ident
 	Int
+	String
 
 	Assign
 	Plus
@@ -55,6 +56,8 @@ func (tt TokenKind) String() string {
 		return "IDENT"
 	case Int:
 		return "INT"
+	case String:
+		return "STRING"
 	case Assign:
 		return "="
 	case Plus:

@@ -72,6 +72,26 @@ return 993322;`
 	}
 }
 
+func TestStringLiteralExpression(t *testing.T) {
+	a := assert.New(t)
+	input := `"Hello World";`
+	program := parse(a, input)
+
+	if !a.Equal(len(program.Statements), 1) {
+		return
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !a.True(ok, "*ast.ExpressionStatement") {
+		return
+	}
+	literal, ok := stmt.Expression.(*ast.StringLiteral)
+	if !a.True(ok, "*ast.StringLiteral") {
+		return
+	}
+	a.Equal(literal.Value, "Hello World")
+}
+
 func TestIntegerLiteralExpression(t *testing.T) {
 	a := assert.New(t)
 	input := "334;"

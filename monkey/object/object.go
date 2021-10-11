@@ -1,6 +1,11 @@
 package object
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"monkey/ast"
+	"strings"
+)
 
 type ObjectKind int
 
@@ -9,6 +14,8 @@ const (
 	BOOLEAN
 	RETURN_VALUE
 	ERROR
+	FUNCTION
+	STRING
 	NULL
 )
 
@@ -22,6 +29,10 @@ func (ok ObjectKind) String() string {
 		return "RETURN_VALUE"
 	case ERROR:
 		return "ERROR"
+	case FUNCTION:
+		return "FUNCTION"
+	case STRING:
+		return "STRING"
 	case NULL:
 		return "NULL"
 	default:
@@ -61,6 +72,39 @@ type Error struct {
 
 func (e *Error) Kind() ObjectKind { return ERROR }
 func (e *Error) Inspect() string  { return "Error: " + e.Message }
+
+type Function struct {
+	Parameters []*ast.Identifier
+	Body       *ast.BlockStatement
+	Env        *Environment
+}
+
+func (f *Function) Kind() ObjectKind { return FUNCTION }
+func (f *Function) Inspect() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, p := range f.Parameters {
+		params = append(params, p.String())
+	}
+
+	out.WriteString("fn")
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(")")
+	out.WriteString(") {\n")
+	out.WriteString(f.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
+}
+
+type String struct {
+	Value string
+}
+
+func (s *String) Kind() ObjectKind { return STRING }
+func (s *String) Inspect() string  { return s.Value }
 
 type Null struct{}
 

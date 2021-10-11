@@ -25,6 +25,8 @@ if (5 < 10) {
 
 10 == 10;
 10 != 9;
+"foobar"
+"foo bar"
 `
 
 	tests := []struct {
@@ -119,8 +121,10 @@ if (5 < 10) {
 		{token.Ne, "!=", 19},
 		{token.Int, "9", 19},
 		{token.Semicolon, ";", 19},
+		{token.String, "foobar", 20},
+		{token.String, "foo bar", 21},
 
-		{token.Eof, "", 20},
+		{token.Eof, "", 22},
 	}
 
 	l := New(input)

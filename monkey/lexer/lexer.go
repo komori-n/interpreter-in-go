@@ -88,6 +88,10 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBrace, string(l.ch), l.line)
 	case '}':
 		tok = newToken(token.RBrace, string(l.ch), l.line)
+	case '"':
+		tok.Line = l.line
+		tok.Kind = token.String
+		tok.Literal = l.readString()
 	case 0:
 		// Assign empty string instead of null string ("\0")
 		tok = newToken(token.Eof, "", l.line)
@@ -111,6 +115,17 @@ func (l *Lexer) NextToken() token.Token {
 
 func newToken(tokenKind token.TokenKind, literal string, line int) token.Token {
 	return token.Token{Kind: tokenKind, Literal: literal, Line: line}
+}
+
+func (l *Lexer) readString() string {
+	position := l.position + 1
+	for {
+		l.readChar()
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
+	}
+	return string(l.input[position:l.position])
 }
 
 func (l *Lexer) readIdentifier() string {
