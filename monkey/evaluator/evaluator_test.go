@@ -93,6 +93,28 @@ func TestBangOperator(t *testing.T) {
 	}
 }
 
+func TestIfElseExpression(t *testing.T) {
+	a := assert.New(t)
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"if (true) { 10 }", 10},
+		{"if (false) { 10 }", nil},
+		{"if (1) { 10 }", 10},
+		{"if (0) { 10 }", nil},
+		{"if (1 < 2) { 10 }", 10},
+		{"if (1 > 2) { 10 }", nil},
+		{"if (1 > 2) { 10 } else { 20 }", 20},
+		{"if (1 < 2) { 10 } else { 20 }", 10},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(a, tt.input)
+		testObject(a, evaluated, tt.expected)
+	}
+}
+
 func testObject(a *assert.Assertions, obj object.Object, expected interface{}) {
 	switch v := expected.(type) {
 	case int:
@@ -101,6 +123,8 @@ func testObject(a *assert.Assertions, obj object.Object, expected interface{}) {
 		testIntegerObject(a, obj, v)
 	case bool:
 		testBooleanObject(a, obj, v)
+	case nil:
+		testNilObject(a, obj)
 	default:
 		a.Fail("type of obj not handles")
 	}
@@ -120,6 +144,11 @@ func testBooleanObject(a *assert.Assertions, obj object.Object, expected bool) {
 		return
 	}
 	a.Equal(result.Value, expected)
+}
+
+func testNilObject(a *assert.Assertions, obj object.Object) {
+	_, ok := obj.(*object.Null)
+	a.True(ok)
 }
 
 func testEval(a *assert.Assertions, input string) object.Object {
