@@ -150,6 +150,7 @@ func TestErrorHandling(t *testing.T) {
 			"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }",
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
+		{"foobar", "identifier not found: foobar"},
 	}
 
 	for _, tt := range tests {
@@ -160,6 +161,24 @@ func TestErrorHandling(t *testing.T) {
 		}
 
 		a.Equal(errObj.Message, tt.expectedMessage)
+	}
+}
+
+func TestLetStatements(t *testing.T) {
+	a := assert.New(t)
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let a = 5; a;", 5},
+		{"let a = 5 * 5; a;", 25},
+		{"let a = 5; let b = a; b;", 5},
+		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(a, tt.input)
+		testObject(a, evaluated, tt.expected)
 	}
 }
 
@@ -203,11 +222,12 @@ func testEval(a *assert.Assertions, input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()
+	env := object.NewEnvironment()
 
 	checkParserErrors(a, p)
 	a.NotNil(program)
 
-	return Eval(program)
+	return Eval(program, env)
 }
 
 func checkParserErrors(a *assert.Assertions, p *parser.Parser) {
