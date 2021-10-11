@@ -14,7 +14,7 @@ func TestEvalIntegerExpression(t *testing.T) {
 	a := assert.New(t)
 	tests := []struct {
 		input    string
-		expected int64
+		expected int
 	}{
 		{"5", 5},
 		{"10", 10},
@@ -22,12 +22,49 @@ func TestEvalIntegerExpression(t *testing.T) {
 
 	for _, tt := range tests {
 		evaluated := testEval(a, tt.input)
-		testIntegerObject(a, evaluated, tt.expected)
+		testObject(a, evaluated, tt.expected)
+	}
+}
+
+func TestEvalBooleanExpression(t *testing.T) {
+	a := assert.New(t)
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"true", true},
+		{"false", false},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(a, tt.input)
+		testObject(a, evaluated, tt.expected)
+	}
+}
+
+func testObject(a *assert.Assertions, obj object.Object, expected interface{}) {
+	switch v := expected.(type) {
+	case int:
+		testIntegerObject(a, obj, int64(v))
+	case int64:
+		testIntegerObject(a, obj, v)
+	case bool:
+		testBooleanObject(a, obj, v)
+	default:
+		a.Fail("type of obj not handles")
 	}
 }
 
 func testIntegerObject(a *assert.Assertions, obj object.Object, expected int64) {
 	result, ok := obj.(*object.Integer)
+	if !a.True(ok) {
+		return
+	}
+	a.Equal(result.Value, expected)
+}
+
+func testBooleanObject(a *assert.Assertions, obj object.Object, expected bool) {
+	result, ok := obj.(*object.Boolean)
 	if !a.True(ok) {
 		return
 	}
