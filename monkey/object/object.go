@@ -8,8 +8,26 @@ const (
 	INTEGER ObjectKind = iota
 	BOOLEAN
 	RETURN_VALUE
+	ERROR
 	NULL
 )
+
+func (ok ObjectKind) String() string {
+	switch ok {
+	case INTEGER:
+		return "INTEGER"
+	case BOOLEAN:
+		return "BOOLEAN"
+	case RETURN_VALUE:
+		return "RETURN_VALUE"
+	case ERROR:
+		return "ERROR"
+	case NULL:
+		return "NULL"
+	default:
+		return "<error kind>"
+	}
+}
 
 type Object interface {
 	Kind() ObjectKind
@@ -36,6 +54,13 @@ type ReturnValue struct {
 
 func (rv *ReturnValue) Kind() ObjectKind { return RETURN_VALUE }
 func (rv *ReturnValue) Inspect() string  { return rv.Value.Inspect() }
+
+type Error struct {
+	Message string
+}
+
+func (e *Error) Kind() ObjectKind { return ERROR }
+func (e *Error) Inspect() string  { return "Error: " + e.Message }
 
 type Null struct{}
 

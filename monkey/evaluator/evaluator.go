@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"fmt"
 	"monkey/ast"
 	"monkey/object"
 )
@@ -23,13 +24,25 @@ func Eval(node ast.Node) object.Object {
 		return evalIfExpression(node)
 	case *ast.ReturnStatement:
 		val := Eval(node.ReturnValue)
+		if isError(val) {
+			return val
+		}
 		return &object.ReturnValue{Value: val}
 	case *ast.PrefixExpression:
 		right := Eval(node.Right)
+		if isError(right) {
+			return right
+		}
 		return evalPrefixExpression(node.Operator, right)
 	case *ast.InfixExpression:
 		left := Eval(node.Left)
+		if isError(left) {
+			return left
+		}
 		right := Eval(node.Right)
+		if isError(right) {
+			return right
+		}
 		return evalInfixExpression(node.Operator, left, right)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
@@ -46,8 +59,11 @@ func evalProgram(program *ast.Program) object.Object {
 	for _, statement := range program.Statements {
 		result = Eval(statement)
 
-		if returnValue, ok := result.(*object.ReturnValue); ok {
-			return returnValue.Value
+		switch result := result.(type) {
+		case *object.ReturnValue:
+			return result.Value
+		case *object.Error:
+			return result
 		}
 	}
 
@@ -60,7 +76,8 @@ func evalStatements(stmts []ast.Statement) object.Object {
 	for _, statement := range stmts {
 		result = Eval(statement)
 
-		if _, ok := result.(*object.ReturnValue); ok {
+		switch result := result.(type) {
+		case *object.ReturnValue, *object.Error:
 			return result
 		}
 	}
@@ -103,7 +120,7 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 	case "-":
 		return evalMinusPrefixOperatorExpression(right)
 	default:
-		return NULL
+		return newError("unknown operator: %s%s", operator, right.Kind())
 	}
 }
 
@@ -115,7 +132,7 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 	if integ, ok := right.(*object.Integer); ok {
 		return &object.Integer{Value: -integ.Value}
 	} else {
-		return NULL
+		return newError("unknown operator: -%s", right.Kind())
 	}
 }
 
@@ -130,7 +147,7 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 	case operator == "!=":
 		return nativeBoolToBooleanObject(left != right)
 	default:
-		return NULL
+		return newError("unknown operator: %s %s %s", left.Kind(), operator, right.Kind())
 	}
 }
 
@@ -144,7 +161,7 @@ func evalIntegerInfixExpression(operator string, leftValue, rightValue int64) ob
 		return &object.Integer{Value: leftValue * rightValue}
 	case "/":
 		if rightValue == 0 {
-			return NULL
+			return newError("division by 0")
 		}
 		return &object.Integer{Value: leftValue / rightValue}
 	case "<":
@@ -165,4 +182,15 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 		return TRUE
 	}
 	return FALSE
+}
+
+func isError(obj object.Object) bool {
+	if obj != nil {
+		return obj.Kind() == object.ERROR
+	}
+	return false
+}
+
+func newError(format string, a ...interface{}) *object.Error {
+	return &object.Error{Message: fmt.Sprintf(format, a...)}
 }

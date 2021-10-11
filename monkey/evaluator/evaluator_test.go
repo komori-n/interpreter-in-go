@@ -134,6 +134,35 @@ func TestReturnStatements(t *testing.T) {
 	}
 }
 
+func TestErrorHandling(t *testing.T) {
+	a := assert.New(t)
+	tests := []struct {
+		input           string
+		expectedMessage string
+	}{
+		{"5 + true", "unknown operator: INTEGER + BOOLEAN"},
+		{"5 + true; 5;", "unknown operator: INTEGER + BOOLEAN"},
+		{"-true", "unknown operator: -BOOLEAN"},
+		{"true + false;", "unknown operator: BOOLEAN + BOOLEAN"},
+		{"5; true + false; 5;", "unknown operator: BOOLEAN + BOOLEAN"},
+		{"if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN"},
+		{
+			"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(a, tt.input)
+		errObj, ok := evaluated.(*object.Error)
+		if !a.True(ok) {
+			continue
+		}
+
+		a.Equal(errObj.Message, tt.expectedMessage)
+	}
+}
+
 func testObject(a *assert.Assertions, obj object.Object, expected interface{}) {
 	switch v := expected.(type) {
 	case int:
