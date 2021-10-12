@@ -183,6 +183,35 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestBuiltinFunction(t *testing.T) {
+	a := assert.New(t)
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`len("")`, 0},
+		{`len("four")`, 4},
+		{`len("hwllo world")`, 11},
+		{`len(1)`, "argument to `len` not supported, got INTEGER"},
+		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(a, tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int:
+			testObject(a, evaluated, expected)
+		case string:
+			errObj, ok := evaluated.(*object.Error)
+			if !a.True(ok) {
+				continue
+			}
+			a.Equal(errObj.Message, expected)
+		}
+	}
+}
+
 func TestStringLiteral(t *testing.T) {
 	a := assert.New(t)
 	input := `"Hello World!"`

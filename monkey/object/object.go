@@ -15,6 +15,7 @@ const (
 	RETURN_VALUE
 	ERROR
 	FUNCTION
+	BUILTIN
 	STRING
 	NULL
 )
@@ -31,6 +32,8 @@ func (ok ObjectKind) String() string {
 		return "ERROR"
 	case FUNCTION:
 		return "FUNCTION"
+	case BUILTIN:
+		return "BUILTIN"
 	case STRING:
 		return "STRING"
 	case NULL:
@@ -98,6 +101,14 @@ func (f *Function) Inspect() string {
 
 	return out.String()
 }
+
+type BuiltinFunction func(args ...Object) Object
+type Builtin struct {
+	Fn BuiltinFunction
+}
+
+func (b *Builtin) Kind() ObjectKind { return BUILTIN }
+func (b *Builtin) Inspect() string  { return "builtin function" }
 
 type String struct {
 	Value string
