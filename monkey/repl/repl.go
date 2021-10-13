@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 
 	"monkey/evaluator"
 	"monkey/lexer"
@@ -38,6 +39,9 @@ func Start(in io.Reader, out io.Writer) {
 		if evaluated != nil {
 			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")
+			if ex, ok := evaluated.(*object.Exit); ok {
+				os.Exit(ex.Status)
+			}
 		}
 	}
 }

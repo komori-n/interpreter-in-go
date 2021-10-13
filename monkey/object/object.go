@@ -17,6 +17,7 @@ const (
 	FUNCTION
 	BUILTIN
 	STRING
+	EXIT
 	NULL
 )
 
@@ -36,6 +37,8 @@ func (ok ObjectKind) String() string {
 		return "BUILTIN"
 	case STRING:
 		return "STRING"
+	case EXIT:
+		return "EXIT"
 	case NULL:
 		return "NULL"
 	default:
@@ -116,6 +119,13 @@ type String struct {
 
 func (s *String) Kind() ObjectKind { return STRING }
 func (s *String) Inspect() string  { return s.Value }
+
+type Exit struct {
+	Status int
+}
+
+func (ex *Exit) Kind() ObjectKind { return EXIT }
+func (ex *Exit) Inspect() string  { return fmt.Sprintf("exit(%d)", ex.Status) }
 
 type Null struct{}
 

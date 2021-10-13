@@ -17,4 +17,22 @@ var builtins = map[string]*object.Builtin{
 			}
 		},
 	},
+	"exit": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) > 1 {
+				return newError("wrong number of arguments. got=%d, want<=1", len(args))
+			}
+
+			status := int(0)
+			if len(args) == 1 {
+				integ, ok := args[0].(*object.Integer)
+				if !ok {
+					return newError("argument to `exit` not supported, got %s", args[0].Kind())
+				}
+				status = int(integ.Value)
+			}
+
+			return &object.Exit{Status: status}
+		},
+	},
 }

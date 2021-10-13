@@ -86,7 +86,7 @@ func evalProgram(program *ast.Program, env *object.Environment) object.Object {
 		switch result := result.(type) {
 		case *object.ReturnValue:
 			return result.Value
-		case *object.Error:
+		case *object.Error, *object.Exit:
 			return result
 		}
 	}
@@ -101,7 +101,7 @@ func evalStatements(stmts []ast.Statement, env *object.Environment) object.Objec
 		result = Eval(statement, env)
 
 		switch result := result.(type) {
-		case *object.ReturnValue, *object.Error:
+		case *object.ReturnValue, *object.Error, *object.Exit:
 			return result
 		}
 	}

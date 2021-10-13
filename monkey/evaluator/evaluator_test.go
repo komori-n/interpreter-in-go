@@ -270,6 +270,27 @@ func TestFunctionApplication(t *testing.T) {
 	}
 }
 
+func TestExit(t *testing.T) {
+	a := assert.New(t)
+	tests := []struct {
+		input    string
+		expected int
+	}{
+		{"exit(0); 334;", 0},
+		{"264; exit(0); 334;", 0},
+		{"exit(227); 334;", 227},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(a, tt.input)
+		ex, ok := evaluated.(*object.Exit)
+		if !a.True(ok) {
+			continue
+		}
+		a.Equal(ex.Status, tt.expected)
+	}
+}
+
 func testObject(a *assert.Assertions, obj object.Object, expected interface{}) {
 	switch v := expected.(type) {
 	case int:
