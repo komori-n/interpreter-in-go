@@ -64,6 +64,22 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 		return applyFunction(function, args)
+	case *ast.ArrayLiteral:
+		elements := evalExpressions(node.Elements, env)
+		if len(elements) == 1 && isError(elements[0]) {
+			return elements[0]
+		}
+		return &object.Array{Elements: elements}
+	case *ast.IndexExpression:
+		left := Eval(node.Left, env)
+		if isError(left) {
+			return left
+		}
+		index := Eval(node.Index, env)
+		if isError(index) {
+			return index
+		}
+		return evalIndexExpression(left, index)
 	case *ast.StringLiteral:
 		return &object.String{Value: node.Value}
 	case *ast.Identifier:
@@ -221,6 +237,24 @@ func unwrapReturnValue(obj object.Object) object.Object {
 		return returnValue.Value
 	}
 	return obj
+}
+
+func evalIndexExpression(left, index object.Object) object.Object {
+	switch {
+	case left.Kind() == object.ARRAY && index.Kind() == object.INTEGER:
+		return evalArrayIndexExpression(left.(*object.Array), index.(*object.Integer))
+	default:
+		return newError("index operator not supported: %s", left.Kind())
+	}
+}
+
+func evalArrayIndexExpression(array *object.Array, index *object.Integer) object.Object {
+	max := int64(len(array.Elements) - 1)
+	if index.Value < 0 || index.Value > max {
+		return NULL
+	}
+
+	return array.Elements[index.Value]
 }
 
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {

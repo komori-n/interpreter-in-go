@@ -36,6 +36,8 @@ const (
 	RParen
 	LBrace
 	RBrace
+	LBracket
+	RBracket
 
 	Function
 	Let
@@ -90,6 +92,10 @@ func (tt TokenKind) String() string {
 		return "{"
 	case RBrace:
 		return "}"
+	case LBracket:
+		return "["
+	case RBracket:
+		return "]"
 	case Function:
 		return "FUNCTION"
 	case Let:

@@ -16,6 +16,7 @@ const (
 	ERROR
 	FUNCTION
 	BUILTIN
+	ARRAY
 	STRING
 	EXIT
 	NULL
@@ -35,6 +36,8 @@ func (ok ObjectKind) String() string {
 		return "FUNCTION"
 	case BUILTIN:
 		return "BUILTIN"
+	case ARRAY:
+		return "ARRAY"
 	case STRING:
 		return "STRING"
 	case EXIT:
@@ -112,6 +115,25 @@ type Builtin struct {
 
 func (b *Builtin) Kind() ObjectKind { return BUILTIN }
 func (b *Builtin) Inspect() string  { return "builtin function" }
+
+type Array struct {
+	Elements []Object
+}
+
+func (a *Array) Kind() ObjectKind { return ARRAY }
+func (a *Array) Inspect() string {
+	var out bytes.Buffer
+	elements := []string{}
+	for _, e := range a.Elements {
+		elements = append(elements, e.Inspect())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
+}
 
 type String struct {
 	Value string

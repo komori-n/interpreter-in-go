@@ -72,6 +72,48 @@ return 993322;`
 	}
 }
 
+func TestParsingArrayLiterals(t *testing.T) {
+	a := assert.New(t)
+
+	input := "[1, 3, 9]"
+	program := parse(a, input)
+	if !a.Equal(len(program.Statements), 1) {
+		return
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !a.True(ok) {
+		return
+	}
+	array, ok := stmt.Expression.(*ast.ArrayLiteral)
+	if !a.True(ok) {
+		return
+	}
+
+	a.Equal(len(array.Elements), 3)
+	testLiteralExpression(a, array.Elements[0], 1)
+	testLiteralExpression(a, array.Elements[1], 3)
+	testLiteralExpression(a, array.Elements[2], 9)
+}
+
+func TestParsingIndexExpressions(t *testing.T) {
+	a := assert.New(t)
+	input := "myArray[2]"
+	program := parse(a, input)
+	if !a.Equal(len(program.Statements), 1) {
+		return
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !a.True(ok) {
+		return
+	}
+	ie, ok := stmt.Expression.(*ast.IndexExpression)
+	if !a.True(ok) {
+		return
+	}
+	testIdendifier(a, ie.Left, "myArray")
+	testLiteralExpression(a, ie.Index, 2)
+}
+
 func TestStringLiteralExpression(t *testing.T) {
 	a := assert.New(t)
 	input := `"Hello World";`

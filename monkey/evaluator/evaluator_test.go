@@ -224,6 +224,20 @@ func TestStringLiteral(t *testing.T) {
 	a.Equal(str.Value, "Hello World!")
 }
 
+func TestArrayLiterals(t *testing.T) {
+	a := assert.New(t)
+	input := `[1, 2 + 2, 3 * 3]`
+	evaluated := testEval(a, input)
+	ao, ok := evaluated.(*object.Array)
+	if !a.True(ok) {
+		return
+	}
+
+	testIntegerObject(a, ao.Elements[0], 1)
+	testIntegerObject(a, ao.Elements[1], 4)
+	testIntegerObject(a, ao.Elements[2], 9)
+}
+
 func TestStringConcatenation(t *testing.T) {
 	a := assert.New(t)
 	input := `"Hello" + " " + "World!"`

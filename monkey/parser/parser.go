@@ -18,6 +18,7 @@ const (
 	PRODUCT
 	PREFIX
 	CALL
+	LBRACKET
 )
 
 var precedences = map[token.TokenKind]int{
@@ -30,6 +31,7 @@ var precedences = map[token.TokenKind]int{
 	token.Asterisk: PRODUCT,
 	token.Slash:    PRODUCT,
 	token.LParen:   CALL,
+	token.LBracket: LBRACKET,
 }
 
 type (
@@ -65,6 +67,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.Minus, p.parsePrefixExpression)
 	p.registerPrefix(token.True, p.parseBoolean)
 	p.registerPrefix(token.False, p.parseBoolean)
+	p.registerPrefix(token.LBracket, p.parseArrayLiteral)
 	p.registerPrefix(token.LParen, p.parseGroupedExpression)
 	p.registerPrefix(token.If, p.parseIfExpression)
 	p.registerPrefix(token.Function, p.parseFunctionLiteral)
@@ -79,6 +82,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.Lt, p.parseInfixExpression)
 	p.registerInfix(token.Gt, p.parseInfixExpression)
 	p.registerInfix(token.LParen, p.parseCallExpression)
+	p.registerInfix(token.LBracket, p.parseIndexExpression)
 
 	return p
 }
@@ -215,6 +219,12 @@ func (p *Parser) parseBoolean() ast.Expression {
 	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(token.True)}
 }
 
+func (p *Parser) parseArrayLiteral() ast.Expression {
+	array := &ast.ArrayLiteral{Token: p.curToken}
+	array.Elements = p.parseExpressionList(token.RBracket)
+	return array
+}
+
 func (p *Parser) parseGroupedExpression() ast.Expression {
 	// Skip lparen('(') token
 	p.nextToken()
@@ -339,11 +349,11 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 	exp := &ast.CallExpression{Token: p.curToken, Function: function}
-	exp.Arguments = p.parseCallArguments()
+	exp.Arguments = p.parseExpressionList(token.RParen)
 	return exp
 }
 
-func (p *Parser) parseCallArguments() []ast.Expression {
+func (p *Parser) parseExpressionList(end token.TokenKind) []ast.Expression {
 	args := []ast.Expression{}
 
 	if p.peekTokenIs(token.RParen) {
@@ -358,11 +368,22 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 		p.nextToken()
 		args = append(args, p.parseExpression(LOWEST))
 	}
-	if !p.expectPeek(token.RParen) {
+	if !p.expectPeek(end) {
 		return nil
 	}
 
 	return args
+}
+
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	exp := &ast.IndexExpression{Token: p.curToken, Left: left}
+	p.nextToken()
+	exp.Index = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RBracket) {
+		return nil
+	}
+	return exp
 }
 
 // Check if the kind of the current token is `t`.
