@@ -194,6 +194,11 @@ func TestBuiltinFunction(t *testing.T) {
 		{`len("hwllo world")`, 11},
 		{`len(1)`, "argument to `len` not supported, got INTEGER"},
 		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
+		{`len([3, 3, 4])`, 3},
+		{`first([3, 3, 4])`, 3},
+		{`last([3, 3, 4])`, 4},
+		{`rest([3, 3, 4])`, []int{3, 4}},
+		{`push([3, 3, 4], 5)`, []int{3, 3, 4, 5}},
 	}
 
 	for _, tt := range tests {
@@ -208,6 +213,14 @@ func TestBuiltinFunction(t *testing.T) {
 				continue
 			}
 			a.Equal(errObj.Message, expected)
+		case []int:
+			arrayObj, ok := evaluated.(*object.Array)
+			if !a.True(ok) {
+				continue
+			}
+			for i, v := range expected {
+				testObject(a, arrayObj.Elements[i], v)
+			}
 		}
 	}
 }
