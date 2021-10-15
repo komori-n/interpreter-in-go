@@ -30,6 +30,7 @@ const (
 	Ne
 
 	Comma
+	Colon
 	Semicolon
 
 	LParen
@@ -82,6 +83,8 @@ func (tt TokenKind) String() string {
 		return "!="
 	case Comma:
 		return ","
+	case Colon:
+		return ":"
 	case Semicolon:
 		return ";"
 	case LParen:

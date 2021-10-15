@@ -251,6 +251,63 @@ func TestArrayLiterals(t *testing.T) {
 	testIntegerObject(a, ao.Elements[2], 9)
 }
 
+func TestHashLiterals(t *testing.T) {
+	a := assert.New(t)
+	input := `let two = "two";
+	{
+		"one": 10 - 9,
+		two: 1 + 1,
+		"thr" + "ee": 6 / 2,
+		4: 4,
+		true: 5,
+		false: 6
+	}`
+
+	expected := map[object.HashKey]int64{
+		(&object.String{Value: "one"}).HashKey():   1,
+		(&object.String{Value: "two"}).HashKey():   2,
+		(&object.String{Value: "three"}).HashKey(): 3,
+		(&object.Integer{Value: 4}).HashKey():      4,
+		TRUE.HashKey():                             5,
+		FALSE.HashKey():                            6,
+	}
+
+	evaluated := testEval(a, input)
+	h, ok := evaluated.(*object.Hash)
+	if !a.True(ok) {
+		return
+	}
+
+	for expectedKey, expectedValue := range expected {
+		pair, ok := h.Pairs[expectedKey]
+		if !a.True(ok) {
+			continue
+		}
+		testIntegerObject(a, pair.Value, expectedValue)
+	}
+}
+
+func TestHashIndexExpression(t *testing.T) {
+	a := assert.New(t)
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`{"foo": 5}["foo"]`, 5},
+		{`{"foo": 5}["bar"]`, nil},
+		{`let key = "foo"; {"foo": 5}[key]`, 5},
+		{`{}["foo"]`, nil},
+		{`{5: 5}[5]`, 5},
+		{`{true: 5}[true]`, 5},
+		{`{false: 5}[false]`, 5},
+	}
+
+	for _, tt := range tests {
+		evaulated := testEval(a, tt.input)
+		testObject(a, evaulated, tt.expected)
+	}
+}
+
 func TestStringConcatenation(t *testing.T) {
 	a := assert.New(t)
 	input := `"Hello" + " " + "World!"`

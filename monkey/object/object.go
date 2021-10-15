@@ -3,6 +3,7 @@ package object
 import (
 	"bytes"
 	"fmt"
+	"hash/fnv"
 	"monkey/ast"
 	"strings"
 )
@@ -17,6 +18,7 @@ const (
 	FUNCTION
 	BUILTIN
 	ARRAY
+	HASH
 	STRING
 	EXIT
 	NULL
@@ -38,6 +40,8 @@ func (ok ObjectKind) String() string {
 		return "BUILTIN"
 	case ARRAY:
 		return "ARRAY"
+	case HASH:
+		return "HASH"
 	case STRING:
 		return "STRING"
 	case EXIT:
@@ -54,12 +58,24 @@ type Object interface {
 	Inspect() string
 }
 
+type HashKey struct {
+	Kind  ObjectKind
+	Value uint64
+}
+
+type Hashable interface {
+	HashKey() HashKey
+}
+
 type Integer struct {
 	Value int64
 }
 
 func (i *Integer) Kind() ObjectKind { return INTEGER }
 func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
+func (i *Integer) HashKey() HashKey {
+	return HashKey{Kind: i.Kind(), Value: uint64(i.Value)}
+}
 
 type Boolean struct {
 	Value bool
@@ -67,6 +83,15 @@ type Boolean struct {
 
 func (b *Boolean) Kind() ObjectKind { return BOOLEAN }
 func (b *Boolean) Inspect() string  { return fmt.Sprintf("%t", b.Value) }
+func (b *Boolean) HashKey() HashKey {
+	var value uint64
+	if b.Value {
+		value = 1
+	} else {
+		value = 0
+	}
+	return HashKey{Kind: b.Kind(), Value: value}
+}
 
 type ReturnValue struct {
 	Value Object
@@ -135,12 +160,45 @@ func (a *Array) Inspect() string {
 	return out.String()
 }
 
+type HashPair struct {
+	Key   Object
+	Value Object
+}
+
+func (hp *HashPair) Inspect() string {
+	return fmt.Sprintf("%s: %s", hp.Key.Inspect(), hp.Value.Inspect())
+}
+
+type Hash struct {
+	Pairs map[HashKey]HashPair
+}
+
+func (h *Hash) Kind() ObjectKind { return HASH }
+func (h *Hash) Inspect() string {
+	var out bytes.Buffer
+
+	pairs := []string{}
+	for _, pair := range h.Pairs {
+		pairs = append(pairs, pair.Inspect())
+	}
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+
+	return out.String()
+}
+
 type String struct {
 	Value string
 }
 
 func (s *String) Kind() ObjectKind { return STRING }
 func (s *String) Inspect() string  { return s.Value }
+func (s *String) HashKey() HashKey {
+	h := fnv.New64a()
+	h.Write([]byte(s.Value))
+	return HashKey{Kind: s.Kind(), Value: h.Sum64()}
+}
 
 type Exit struct {
 	Status int

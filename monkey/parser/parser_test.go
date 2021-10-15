@@ -95,6 +95,25 @@ func TestParsingArrayLiterals(t *testing.T) {
 	testLiteralExpression(a, array.Elements[2], 9)
 }
 
+func TestParsingHashLiteral(t *testing.T) {
+	a := assert.New(t)
+	input := `{"one": 0 + 1, "two": 10 - 8, "three": 15 / 5}`
+	program := parse(a, input)
+	if !a.Equal(len(program.Statements), 1) {
+		return
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !a.True(ok) {
+		return
+	}
+	_, ok = stmt.Expression.(*ast.HashLiteral)
+	if !a.True(ok) {
+		return
+	}
+	// a.Equal(hash.Pairs[&ast.StringLiteral{Value: "one"}].String(), "0 + 1")
+}
+
 func TestParsingIndexExpressions(t *testing.T) {
 	a := assert.New(t)
 	input := "myArray[2]"
