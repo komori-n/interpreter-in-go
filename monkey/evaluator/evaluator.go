@@ -24,29 +24,29 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalIfExpression(node, env)
 	case *ast.ReturnStatement:
 		val := Eval(node.ReturnValue, env)
-		if isError(val) {
+		if isErrorOrExit(val) {
 			return val
 		}
 		return &object.ReturnValue{Value: val}
 	case *ast.LetStatement:
 		val := Eval(node.Value, env)
-		if isError(val) {
+		if isErrorOrExit(val) {
 			return val
 		}
 		env.Set(node.Name.Value, val)
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
-		if isError(right) {
+		if isErrorOrExit(right) {
 			return right
 		}
 		return evalPrefixExpression(node.Operator, right)
 	case *ast.InfixExpression:
 		left := Eval(node.Left, env)
-		if isError(left) {
+		if isErrorOrExit(left) {
 			return left
 		}
 		right := Eval(node.Right, env)
-		if isError(right) {
+		if isErrorOrExit(right) {
 			return right
 		}
 		return evalInfixExpression(node.Operator, left, right)
@@ -56,17 +56,17 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.Function{Parameters: params, Env: env, Body: body}
 	case *ast.CallExpression:
 		function := Eval(node.Function, env)
-		if isError(function) {
+		if isErrorOrExit(function) {
 			return function
 		}
 		args := evalExpressions(node.Arguments, env)
-		if len(args) == 1 && isError(args[0]) {
+		if len(args) == 1 && isErrorOrExit(args[0]) {
 			return args[0]
 		}
 		return applyFunction(function, args)
 	case *ast.ArrayLiteral:
 		elements := evalExpressions(node.Elements, env)
-		if len(elements) == 1 && isError(elements[0]) {
+		if len(elements) == 1 && isErrorOrExit(elements[0]) {
 			return elements[0]
 		}
 		return &object.Array{Elements: elements}
@@ -74,11 +74,11 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalHashLiteral(node, env)
 	case *ast.IndexExpression:
 		left := Eval(node.Left, env)
-		if isError(left) {
+		if isErrorOrExit(left) {
 			return left
 		}
 		index := Eval(node.Index, env)
-		if isError(index) {
+		if isErrorOrExit(index) {
 			return index
 		}
 		return evalIndexExpression(left, index)
@@ -202,7 +202,7 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Ob
 
 	for _, e := range exps {
 		evaluated := Eval(e, env)
-		if isError(evaluated) {
+		if isErrorOrExit(evaluated) {
 			return []object.Object{evaluated}
 		}
 		result = append(result, evaluated)
@@ -246,7 +246,7 @@ func evalHashLiteral(node *ast.HashLiteral, env *object.Environment) object.Obje
 
 	for keyNode, valueNode := range node.Pairs {
 		key := Eval(keyNode, env)
-		if isError(key) {
+		if isErrorOrExit(key) {
 			return key
 		}
 
@@ -256,7 +256,7 @@ func evalHashLiteral(node *ast.HashLiteral, env *object.Environment) object.Obje
 		}
 
 		value := Eval(valueNode, env)
-		if isError(value) {
+		if isErrorOrExit(value) {
 			return value
 		}
 
@@ -354,9 +354,9 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 	return FALSE
 }
 
-func isError(obj object.Object) bool {
+func isErrorOrExit(obj object.Object) bool {
 	if obj != nil {
-		return obj.Kind() == object.ERROR
+		return obj.Kind() == object.ERROR || obj.Kind() == object.EXIT
 	}
 	return false
 }
